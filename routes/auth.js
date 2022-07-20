@@ -30,15 +30,13 @@ router.post('/', [
 
 router.get('/renew', validarJWT, revalidarToken);
 
-
-
-//Registrar un proyecto
-
 router.post('/nproyect',[
     check('titulo','El titulo es obligatorio').not().isEmpty(),
     check('alumno','El alumno es obligatorio').not().isEmpty(),
     validarCampos
 ],crearProyecto);
 
-
 module.exports = router;
+
+
+

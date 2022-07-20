@@ -1,5 +1,5 @@
 const { response } = require('express');
-const Usuario= require ('../models/usuario');
+const Usuario = require ('../models/usuario');
 const Proyecto = require('../models/proyecto');
 const bcrypt = require('bcryptjs')
 const {generarJWT} = require('../helpers/jwt')
@@ -46,7 +46,7 @@ const crearUsuario = async(req, res = response) =>{
 
             //Generar JWT
 
-            const token = await generarJWT(dbUser.id, user, rol);
+            const token = await generarJWT(dbUser.id, user);
 
             //Generar respuesta exitosa
             return res.status(201).json({
@@ -54,14 +54,13 @@ const crearUsuario = async(req, res = response) =>{
                 uid: dbUser.id,
                 user,
                 email,
-                rol,
                 token
             })
 
     } catch (error) {
         return res.status(500).json({
             ok:false,
-            msg: 'Por favor hable con el administrador registrar'
+            msg: 'Por favor hable con el administrador'
         });
     }
   
@@ -99,7 +98,7 @@ const loginUsuario = async(req, res) => {
         }
         
         //Generar el JWT
-        const token = await generarJWT(dbUser.id, dbUser.user,dbUser.rol);
+        const token = await generarJWT(dbUser.id, dbUser.user);
 
         //Respuesta del servicio
 
@@ -108,7 +107,6 @@ const loginUsuario = async(req, res) => {
             uid: dbUser.id,
             user: dbUser.user,
             email: dbUser.email,
-            rol: dbUser.rol,
             token
         })
 
@@ -116,32 +114,30 @@ const loginUsuario = async(req, res) => {
         console.log(error);
         return res.status(500).json({
             ok:false,
-            msg: 'Hable con el administrador inicio de sesion'
+            msg: 'Hable con el administrador'
         })
     }
 }
 
 const revalidarToken =  async (req, res = response) => {
     
-    const{uid, user,rol} = req;
+    const{uid, user} = req;
 
     //leer la base de datos para obtener el email
 
     const dbUser = await Usuario.findById(uid);
 
 
-    const token = await generarJWT(uid, user,rol);
+    const token = await generarJWT(uid, user);
 
     return res.json({
         ok:true,
         uid,
         user,
         email: dbUser.email,
-        rol: dbUser.rol,
         token
     })
 }
-
 const crearProyecto = async(req,res = response) =>{
     const {titulo, alumno} = req.body;
 
@@ -172,6 +168,7 @@ const crearProyecto = async(req,res = response) =>{
     });
 }
 }
+
 module.exports = {
     crearUsuario,
     loginUsuario,
