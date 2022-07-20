@@ -1,5 +1,6 @@
 const { response } = require('express');
-const Usuario = require ('../models/usuario');
+const Usuario= require ('../models/usuario');
+const Proyecto = require('../models/proyecto');
 const bcrypt = require('bcryptjs')
 const {generarJWT} = require('../helpers/jwt')
 
@@ -60,7 +61,7 @@ const crearUsuario = async(req, res = response) =>{
     } catch (error) {
         return res.status(500).json({
             ok:false,
-            msg: 'Por favor hable con el administrador'
+            msg: 'Por favor hable con el administrador registrar'
         });
     }
   
@@ -115,7 +116,7 @@ const loginUsuario = async(req, res) => {
         console.log(error);
         return res.status(500).json({
             ok:false,
-            msg: 'Hable con el administrador'
+            msg: 'Hable con el administrador inicio de sesion'
         })
     }
 }
@@ -141,8 +142,39 @@ const revalidarToken =  async (req, res = response) => {
     })
 }
 
+const crearProyecto = async(req,res = response) =>{
+    const {titulo, alumno} = req.body;
+
+    try{
+
+        // Verificar usuario
+        const  proyecto= await Proyecto.findOne({alumno});
+        
+        if( proyecto) {
+           return res.status(400).json({
+               ok: false,
+               msg: 'El alumno ya esta en un proyecto'
+            })
+        }
+
+        //Crear usuario con el modelo
+
+        const dbProyecto = new Proyecto(req.body);
+
+        //Crear usuario en la BD
+
+        dbProyecto.save();
+}        
+ catch (error) {
+    return res.status(500).json({
+        ok:false,
+        msg: 'Por favor hable con el administrador3'
+    });
+}
+}
 module.exports = {
     crearUsuario,
     loginUsuario,
-    revalidarToken
+    revalidarToken,
+    crearProyecto
 }

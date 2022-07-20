@@ -1,6 +1,6 @@
 const {Router} = require('express');
 const { check } = require('express-validator');
-const { crearUsuario, loginUsuario, revalidarToken } = require('../controllers/auth.controllers');
+const { crearUsuario, loginUsuario, revalidarToken,crearProyecto } = require('../controllers/auth.controllers');
 const { validarCampos } = require('../middlewares/validar-campos');
 const {validarJWT} = require('../middlewares/validar-JWT')
 const router = Router();
@@ -30,7 +30,15 @@ router.post('/', [
 
 router.get('/renew', validarJWT, revalidarToken);
 
+
+
+//Registrar un proyecto
+
+router.post('/nproyect',[
+    check('titulo','El titulo es obligatorio').not().isEmpty(),
+    check('alumno','El alumno es obligatorio').not().isEmpty(),
+    validarCampos
+],crearProyecto);
+
+
 module.exports = router;
-
-
-
