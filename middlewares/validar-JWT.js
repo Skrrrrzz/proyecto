@@ -30,6 +30,7 @@ const validarJWT = (req, res = response, next) => {
     next();
 }
 
+
 module.exports = {
     validarJWT
 }
