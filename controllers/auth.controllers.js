@@ -10,6 +10,7 @@ const Retroalimentacion = require('../models/retroalimentacion');
 const bcrypt = require('bcryptjs')
 const {generarJWT} = require('../helpers/jwt');
 const documentos = require('../models/documentos');
+const { db } = require('../models/usuario');
 
 
 const crearUsuario = async(req, res = response) =>{
@@ -39,7 +40,9 @@ const crearUsuario = async(req, res = response) =>{
             }
 
             //Crear usuario con el modelo
-
+            if ({semestre} === null){
+               const  {semestre} = null;
+            }
             const dbUser = new Usuario(req.body);
 
             //Crear usuario en la BD
@@ -135,7 +138,7 @@ const revalidarToken =  async (req, res = response) => {
     const dbUser = await Usuario.findById(uid);
 
 
-    const token = await generarJWT(uid, user, rol);
+    const token = await generarJWT(uid, user);
 
     return res.json({
         ok:true,
@@ -351,8 +354,23 @@ const buscarProyecto =  async (req, res) => {
     const uid = req.header('x-id')
 try{
     //leer la base de datos para obtener el email
-    const dbUser = await Proyecto.findOne({user:uid});
-
+    const dbUser = await Proyecto.findById(uid).populate('alumno')
+    .populate('alumno2')
+    .populate('profeguia')
+    .populate('profeinformante')
+    .populate('profeinformante2')
+    .populate('profeinformante3')
+    .populate('entregafip')
+    .populate('entrega33')
+    .populate('entrega66')
+    .populate('entrega100')
+    .populate('retro1')
+    .populate('retro2')
+    .populate('retro3')
+    .populate('formeval1')
+    .populate('formeval2')
+    .populate('formeval3');
+    console.log(dbUser)
     return res.status(201).json({
         ok:true,
         dbUser
@@ -367,10 +385,10 @@ try{
 // buscar propuesta
 const buscarPropuesta =  async (req, res) => {
     
-    const uid = req.header('x-id')
+    titulo = req.params.titulo;
 try{
     //leer la base de datos para obtener el email
-    const dbUser = await Propuesta.findOne({user:uid});
+    const dbUser = await Propuesta.find({titulo:titulo});
 
     return res.status(201).json({
         ok:true,
@@ -465,22 +483,47 @@ try{
 // buscar documentos
 const buscarDocumentos =  async (req, res) => {
     
-    const uid = req.header('x-id')
-try{
+    const titulo = req.params.titulo
+//try{
     //leer la base de datos para obtener el email
-    const dbUser = await Documento.findOne({user:uid});
+    busqueda = {$regex: titulo, $options: 'i'}
+    Documento.find({titulo:busqueda},function(err,doc ){
+        if(doc === ''){
+            return res.status(404).json({
+                ok:false
+            })
+        }else{
+        return res.status(200).send(doc);
+        }
+    });
 
-    return res.status(201).json({
-        ok:true,
-        dbUser
-    })
-}catch(error){
-    return res.status(400).json({
+
+};
+//por categoria
+const buscarxCategoria =  async (req, res) => {
+    
+    const cat = req.params.categoria
+//try{
+    //leer la base de datos para obtener el email
+    Documento.find({categoria:cat},function(err,doc ){
+        if(doc === ''){
+            return res.status(404).json({
+                ok:false
+            })
+        }else{
+        return res.status(200).send(doc);
+        }
+    });
+
+
+};
+/*}catch(error){
+    return res.status(404).json({
         ok:false,
         msg: 'No se encontro'
     });
 }
-}
+}*/
 //eliminar usuario
 const eliminarUsuario =  async (req, res) => {
     
@@ -869,5 +912,6 @@ module.exports = {
     actualizarFecha,
     actualizarPropuestas,
     actualizarProyecto,
-    actualizarRetroalimentacion
+    actualizarRetroalimentacion,
+    buscarxCategoria
 }

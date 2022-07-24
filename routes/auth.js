@@ -1,6 +1,6 @@
 const {Router} = require('express');
 const { check } = require('express-validator');
-const { crearUsuario, loginUsuario, revalidarToken,crearProyecto,crearCalendario,crearCitas,crearDocumentos,crearEntrega,crearPropuesta,crearRetroalimentacion, buscarUsuario, buscarPropuesta, buscarProyecto, buscarFecha, buscarDocumentos, buscarEntrega, buscarRetroalimentacion, buscarCitas, eliminarUsuario, eliminarProyecto, eliminarPropuesta, eliminarCitas, eliminarFecha, eliminarEntrega, eliminarDocumentos, eliminarRetroalimentacion, actualizarUsuario, actualizarProyecto, actualizarPropuestas, actualizarCitas, actualizarFecha, actualizarEntrega, actualizarRetroalimentacion, actualizarDocumentos } = require('../controllers/auth.controllers');
+const { crearUsuario, loginUsuario, revalidarToken,crearProyecto,crearCalendario,crearCitas,crearDocumentos,crearEntrega,crearPropuesta,crearRetroalimentacion, buscarUsuario, buscarPropuesta, buscarProyecto, buscarFecha, buscarDocumentos, buscarEntrega, buscarRetroalimentacion, buscarCitas, eliminarUsuario, eliminarProyecto, eliminarPropuesta, eliminarCitas, eliminarFecha, eliminarEntrega, eliminarDocumentos, eliminarRetroalimentacion, actualizarUsuario, actualizarProyecto, actualizarPropuestas, actualizarCitas, actualizarFecha, actualizarEntrega, actualizarRetroalimentacion, actualizarDocumentos, buscarxCategoria } = require('../controllers/auth.controllers');
 const { validarCampos } = require('../middlewares/validar-campos');
 const {validarJWT, validarUSER} = require('../middlewares/validar-JWT')
 const router = Router();
@@ -31,7 +31,7 @@ router.post('/', [
 router.get('/renew', validarJWT, revalidarToken);
 
 // Registrar proyecto
-router.post('/nproyect',[
+router.post('/nproyecto',[
     check('titulo','El titulo es obligatorio').not().isEmpty(),
     check('alumno','El alumno es obligatorio').not().isEmpty(),
     validarCampos
@@ -92,7 +92,9 @@ router.get('/bpropuesta', buscarPropuesta);
 //Buscar fechas
 router.get('/bfecha', buscarFecha);
 //Buscar documentos
-router.get('/bdocumento', buscarDocumentos);
+router.get('/bdocumento/:titulo', buscarDocumentos);
+//Buscar documento por categoria
+router.get('/bcategoria/:categoria', buscarxCategoria);
 //Buscar entrega
 router.get('/bentrega', buscarEntrega);
 //Buscar retroalimentacion
