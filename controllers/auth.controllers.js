@@ -1,5 +1,6 @@
 const { response } = require('express');
 const Usuario = require ('../models/usuario');
+const Categoria = require('../models/categoria');
 const Proyecto = require('../models/proyecto');
 const Calendario = require('../models/calendario');
 const Citas = require('../models/citas');
@@ -64,6 +65,7 @@ const crearUsuario = async(req, res = response) =>{
                 uid: dbUser.id,
                 user,
                 email,
+                rol,
                 token
             })
 
@@ -90,7 +92,13 @@ const loginUsuario = async(req, res) => {
         if(!dbUser){
             return res.status(400).json({
                 ok:false,
-                msg: 'El user no existe'
+                msg: 'El usuario no existe'
+            })
+        }
+        if(dbUser.enable === false){
+            return res.status(400).json({
+                ok:false,
+                msg: 'El usuario no esta habilitado, contacte al administrador'
             })
         }
 
@@ -102,7 +110,7 @@ const loginUsuario = async(req, res) => {
 
             return res.status(400).json({
                 ok:false,
-                msg: 'El password no es valido'
+                msg: 'La contraseña no es valida'
             })
 
         }
@@ -117,6 +125,8 @@ const loginUsuario = async(req, res) => {
             uid: dbUser.id,
             user: dbUser.user,
             email: dbUser.email,
+            rol: dbUser.rol,
+            semestre:dbUser.semestre,
             token
         })
 
@@ -124,7 +134,7 @@ const loginUsuario = async(req, res) => {
         console.log(error);
         return res.status(500).json({
             ok:false,
-            msg: 'Hable con el administrador inicio de sesion'
+            msg: 'Hable con el administrador'
         })
     }
 }
@@ -149,7 +159,7 @@ const revalidarToken =  async (req, res = response) => {
     })
 }
 const crearProyecto = async(req,res = response) =>{
-    const {titulo, alumno} = req.body;
+    const {titulo, alumno,alumno2} = req.body;
 
     try{
 
@@ -162,7 +172,16 @@ const crearProyecto = async(req,res = response) =>{
                msg: 'El alumno ya esta en un proyecto'
             })
         }
-
+        if(alumno2 !== null){
+            const proyecto2 = await Proyecto.findOne({alumno2});
+            if(proyecto2){
+                return res.status(400).json({
+                    ok: false,
+                    msg: 'El alumno2 ya esta en un proyecto'
+                 })
+            }
+        }
+       
         //Crear usuario con el modelo
 
         const dbProyecto = new Proyecto(req.body);
@@ -179,7 +198,8 @@ const crearProyecto = async(req,res = response) =>{
  catch (error) {
     return res.status(500).json({
         ok:false,
-        msg: 'Por favor hable con el administrador proyecto'
+        msg: 'Por favor hable con el administrador proyecto',
+        error: error
     });
 }
 }
@@ -232,6 +252,32 @@ const crearCalendario = async(req,res = response) =>{
     });
 }
 }
+const crearCategoria = async(req,res) =>{
+    const{categoria} = req.body;
+    try{
+        const categorias = await Categoria.findOne({categoria})
+        if(categorias){
+            return res.status(400).json({
+                ok: false,
+                msg: 'La categoria ya existe'
+            })
+        }
+        //Crear usuario con el modelo
+        const dbCategoria = new Categoria(req.body);
+        //Crear usuario en la BD
+        dbCategoria.save();
+        return res.status(201).json({
+            ok:true,
+            dbCategoria
+        })
+}        
+ catch (error) {
+    return res.status(500).json({
+        ok:false,
+        msg: 'Por favor hable con el administrador categoria'
+    });
+}
+}
 const crearCitas = async(req,res = response) =>{
     const {titulo, link} = req.body;
 
@@ -281,12 +327,24 @@ const crearDocumentos = async(req,res = response) =>{
 }
 }
 const crearEntrega = async(req,res = response) =>{
-    const {titulo, autor, fecha, documento} = req.body;
-
-    try{
-
-        //Crear usuario con el modelo
-
+    const {titulo, autor, fecha, documento,tipo,proyecto} = req.body;
+    
+    const entrega = await Entrega.findOne({tipo:tipo,proyecto:proyecto})
+    console.log(entrega)
+    if(entrega){
+        Entrega.findByIdAndUpdate(entrega._id,req.body, (err)=>
+        {
+            if(err){ return res.status(500).json({
+                ok: false,
+                msg: 'no se pudo actualizar'
+            })}else{
+                return res.status(201).json({
+                    ok:true,
+                    msg: 'actualizado'
+                })
+            }
+        })
+    }else{
         const dbEntrega = new Entrega(req.body);
 
         //Crear usuario en la BD
@@ -296,51 +354,63 @@ const crearEntrega = async(req,res = response) =>{
             ok:true,
             dbEntrega
         })
-}        
- catch (error) {
-    return res.status(500).json({
-        ok:false,
-        msg: 'Por favor hable con el administrador entrega'
-    });
-}
-}
-const crearRetroalimentacion = async(req,res = response) =>{
-    const {titulo, autor, fecha, documento } = req.body;
-
-    try{
+    }
 
         //Crear usuario con el modelo
 
-        const dbRetro = new Retroalimentacion(req.body);
+       
 
-        //Crear usuario en la BD
-
-        dbRetro.save();
-        return res.status(201).json({
-            ok:true,
-            dbRetro
-        })
-}        
- catch (error) {
-    return res.status(500).json({
-        ok:false,
-        msg: 'Por favor hable con el administrador retroalimentacion'
-    });
 }
+const veryactualizar = async(req,res)=>{
+    const {autor,tipo,evalu} = req.body;
+    const retro = await Retroalimentacion.findOne({autor:autor,tipo:tipo,evalu:evalu})
+    console.log(retro)
+}
+const crearRetroalimentacion = async(req,res = response) =>{
+    const {titulo, autor, fecha, documento,tipo,evalu } = req.body;
+
+    
+        const retro = await Retroalimentacion.findOne({autor:autor,tipo:tipo,evalu:evalu})
+        console.log(retro)
+        if(retro){
+            Retroalimentacion.findByIdAndUpdate(retro._id,req.body, (err)=>
+            {
+                if(err){ return res.status(500).json({
+                    ok: false,
+                    msg: 'no se pudo actualizar'
+                })}else{
+                    return res.status(201).json({
+                        ok:true,
+                        msg: 'actualizado'
+                    })
+                }
+            })
+        }else{
+            const dbRetro = new Retroalimentacion(req.body);
+
+            //Crear usuario en la BD
+    
+            dbRetro.save();
+            return res.status(201).json({
+                ok:true,
+                dbRetro
+            })
+        }
+        //Crear usuario con el modelo
+
+       
+
 }
 
 //mostrar usuario
 const buscarUsuario =  async (req, res) => {
     
-    const uid = req.header('x-id')
+    const uid = req.params._id
 try{
     //leer la base de datos para obtener el email
-    const dbUser = await Usuario.findOne({user:uid});
-
-    return res.status(201).json({
-        ok:true,
-        dbUser
-    })
+ Usuario.find({_id:uid}, function(err,usuario){
+        return res.status(201).send(usuario)
+    });
 }catch(error){
     return res.status(400).json({
         ok:false,
@@ -348,28 +418,105 @@ try{
     });
 }
 }
+//buscar entregas
+const buscarEntregas = async(req,res) =>{
+    const uid = req.params._id
+ try{   
+    const dbUser = await Proyecto.find({$or:[{alumno:uid},{alumno2:uid}]})
+    console.log(dbUser[0]._id);
+    Entrega.find({proyecto:dbUser[0]._id}, function (err,entregas){
+        return res.status(200).send(entregas)
+    }).populate('autor')
+}catch(error){
+    return res.status(400).json({
+        ok:false,
+        msg:'No se encontro'
+    })
+}
+}
+
+const buscarRetro = async(req,res)=>{
+    const uid = req.params._id
+    try{
+        const dbUser = await Proyecto.find({$or:[{alumno:uid},{alumno2:uid}]})
+        Retroalimentacion.find({proyecto:dbUser[0]._id},function (err,datos){
+            return res.status(200).send(datos)
+        }).populate('autor')
+    }catch(error){
+        return res.status(400).json({
+            ok:false,
+            msg:'No se encontro'
+        })
+    }
+}
+//buscar todos los usuarios
+const buscartodosUsuario =  async (req, res) => {
+    
+try{
+    //leer la base de datos para obtener el email
+ Usuario.find( function(err,usuario){
+        return res.status(201).send(usuario)
+    });
+}catch(error){
+    return res.status(400).json({
+        ok:false,
+        msg: 'No se encontro'
+    });
+}
+}
+//buscar todos los documentos
+const buscartodosDocumentos =  async (req, res) => {
+    
+    try{
+        //leer la base de datos para obtener el email
+     Documento.find( function(err,usuario){
+            return res.status(201).send(usuario)
+        });
+    }catch(error){
+        return res.status(400).json({
+            ok:false,
+            msg: 'No se encontro'
+        });
+    }
+    }
+//buscar todos los proyectos
+const buscartodosProyectos =  async (req, res) => {
+    
+    try{
+        //leer la base de datos para obtener el email
+     Proyecto.find( function(err,proyecto){
+            return res.status(201).send(proyecto)
+        });
+    }catch(error){
+        return res.status(400).json({
+            ok:false,
+            msg: 'No se encontro'
+        });
+    }
+    }
+ const buscartodosproyectopop =  async (req, res) => {
+    
+    try{
+        //leer la base de datos para obtener el email
+        Proyecto.find(function(err,proyecto){
+            return res.status(200).send(proyecto)
+        }).populate('alumno').populate('alumno2').populate('profeguia').populate('profeinformante').populate('profeinformante2').populate('profeinformante3').populate('coordinador')
+    }catch(error){
+        return res.status(400).json({
+            ok:false,
+            msg: 'No se encontro'
+        });
+    }
+    }
+
 // buscar proyecto
 const buscarProyecto =  async (req, res) => {
     
-    const uid = req.header('x-id')
+    const uid = req.params._id
 try{
     //leer la base de datos para obtener el email
-    const dbUser = await Proyecto.findById(uid).populate('alumno')
-    .populate('alumno2')
-    .populate('profeguia')
-    .populate('profeinformante')
-    .populate('profeinformante2')
-    .populate('profeinformante3')
-    .populate('entregafip')
-    .populate('entrega33')
-    .populate('entrega66')
-    .populate('entrega100')
-    .populate('retro1')
-    .populate('retro2')
-    .populate('retro3')
-    .populate('formeval1')
-    .populate('formeval2')
-    .populate('formeval3');
+    const dbUser = await Proyecto.findById(uid).populate('alumno').populate('alumno2').populate('profeguia').populate('profeinformante').populate('profeinformante2').populate('profeinformante3').populate('coordinador')
+
     console.log(dbUser)
     return res.status(201).json({
         ok:true,
@@ -382,18 +529,60 @@ try{
     });
 }
 }
+//buscar proyecto por id de usuario
+const proyectoxusuario = async(req,res) =>{
+    uid = req.params._id
+    try{
+        Proyecto.find({$or:[{alumno:uid},{alumno2:uid},{profeguia:uid},{profeinformante:uid},{profeinformante2:uid},{profeinformante3:uid},{coordinador:uid},{profesorPt1:uid}]},function(err,proy){
+            return res.status(200).send(proy);
+        }).populate('alumno').populate('alumno2').populate('profeguia').populate('profeinformante').populate('profeinformante2').populate('profeinformante3').populate('coordinador')
+    }catch(error){
+        return res.status(400).json({
+            ok:false,
+            msg:'No se encontraron'
+        })
+    }
+}
+//buscar entrega por proyecto
+const entregaxproyecto = async(req,res) =>{
+    uid = req.params._id
+    try{
+        Entrega.find({proyecto:uid},function(err,entre){
+            return res.status(200).send(entre)
+        }).populate('autor')
+    }catch(error){
+        return res.status(400).json({
+            ok:false,
+            msg:'No se encontraron'
+        })
+    }
+}
+//buscar retro por proyecto
+const retroxproyecto = async(req,res) =>{
+    uid = req.params._id
+    try{
+        Retroalimentacion.find({proyecto:uid},function(err,entre){
+            return res.status(200).send(entre)
+        }).populate('autor')
+    }catch(error){
+        return res.status(400).json({
+            ok:false,
+            msg:'No se encontraron'
+        })
+    }
+}
 // buscar propuesta
 const buscarPropuesta =  async (req, res) => {
     
-    titulo = req.params.titulo;
+    
 try{
     //leer la base de datos para obtener el email
-    const dbUser = await Propuesta.find({titulo:titulo});
+    Propuesta.find({}, function(err,propuesta){
+        return res.status(201).send(propuesta)
 
-    return res.status(201).json({
-        ok:true,
-        dbUser
-    })
+    }).populate('autor')
+
+   
 }
 catch(error){
     return res.status(400).json({
@@ -405,15 +594,14 @@ catch(error){
 //buscar fecha de calendario
 const buscarFecha =  async (req, res) => {
     
-    const uid = req.header('x-id')
+  
 try{
     //leer la base de datos para obtener el email
-    const dbUser = await Calendario.findOne({user:uid});
+   Calendario.find({},function(err,fecha){
+    return res.status(201).send(fecha)
+   });
 
-    return res.status(201).json({
-        ok:true,
-        dbUser
-    })
+    
 }
 catch(error){
     return res.status(400).json({
@@ -425,15 +613,14 @@ catch(error){
 // buscar citas
 const buscarCitas =  async (req, res) => {
  try{   
-    const uid = req.header('x-id')
+    
 
     //leer la base de datos para obtener el email
-    const dbUser = await Citas.findOne({user:uid});
+    Citas.find({},function(err,citas){
+        return res.status(201).send(citas);
+    });
 
-    return res.status(201).json({
-        ok:true,
-        dbUser
-    })
+ 
 }catch(error){
     return res.status(400).json({
         ok:false,
@@ -495,14 +682,14 @@ const buscarDocumentos =  async (req, res) => {
         }else{
         return res.status(200).send(doc);
         }
-    });
+    }).populate('categoria');
 
 
 };
 //por categoria
 const buscarxCategoria =  async (req, res) => {
     
-    const cat = req.params.categoria
+    const cat = req.params._id
 //try{
     //leer la base de datos para obtener el email
     Documento.find({categoria:cat},function(err,doc ){
@@ -513,7 +700,7 @@ const buscarxCategoria =  async (req, res) => {
         }else{
         return res.status(200).send(doc);
         }
-    });
+    }).populate('categoria');
 
 
 };
@@ -526,53 +713,46 @@ const buscarxCategoria =  async (req, res) => {
 }*/
 //eliminar usuario
 const eliminarUsuario =  async (req, res) => {
-    
-    const uid = req.header('x-id')
-try{
-    //leer la base de datos para obtener el email
-    const dbUser = await Usuario.findOne({user:uid});
+    const uid = req.params._id
+    const update = req.body
 
-    dbUser.remove();
-
-    return res.status(201).json({
-        ok:true,
-        msg:'eliminado'
-    });
-}catch(error){
-    return res.status(400).json({
-        ok:false,
-        msg: 'No se encontro'
+    Usuario.findByIdAndUpdate(uid,update, (err)=> {
+        if(err) return res.status(500).json({
+            ok: false,
+            msg: 'no se pudo actualizar'
+        })
+        return res.status(201).json({
+            ok:true,
+            msg:'usuario actualizado'
+        })
     });
 }
-}
+
 //eliminar proyecto
-const eliminarProyecto =  async (req, res) => {
+const cambiarProyecto =  async (req, res) => {
     
-    const uid = req.header('x-id')
-try{
+    const uid = req.params._id
+    const update = req.body
+
     //leer la base de datos para obtener el email
-    const dbUser = await Proyecto.findOne({user:uid});
-
-    dbUser.remove();
-
-    return res.status(201).json({
-        ok:true,
-        msg:'eliminado'
+    Proyecto.findByIdAndUpdate(uid,update,(err)=> {
+        if(err) return res.status(500).json({
+            ok: false,
+            msg: 'no se pudo actualizar'
+        })
+        return res.status(201).json({
+            ok:true,
+            msg:'usuario actualizado'
+        })
     });
-}catch(error){
-    return res.status(400).json({
-        ok:false,
-        msg: 'No se encontro'
-    });
-}
 }
 //eliminar propuesta
 const eliminarPropuesta =  async (req, res) => {
     
-    const uid = req.header('x-id')
+    const uid = req.params._id
 try{
     //leer la base de datos para obtener el email
-    const dbUser = await Propuesta.findOne({user:uid});
+    const dbUser = await Propuesta.findOne({_id:uid});
 
     dbUser.remove();
 
@@ -587,19 +767,55 @@ try{
     });
 }
 }
-//eliminar citas
-const eliminarCitas =  async (req, res) => {
+const traerTodasCategorias = async(req,res)=>{
     
-    const uid = req.header('x-id')
+
+    try{
+        Categoria.find({},function(err,fecha){
+            return res.status(201).send(fecha)
+           });
+    }
+    catch(error){
+        return res.status(400).json({
+            ok:false,
+            msg: 'No se encontro'
+        });
+    }
+}
+const eliminarCategoria =  async (req, res) => {
+    
+    const uid = req.params._id
 try{
     //leer la base de datos para obtener el email
-    const dbUser = await Citas.findOne({user:uid});
+    const dbUser = await Categoria.findOne({_id:uid});
 
     dbUser.remove();
 
     return res.status(201).json({
         ok:true,
-        ok:'eliminado'
+        msg:'eliminado'
+    });
+}
+catch(error){
+    return res.status(400).json({
+        ok:false,
+        msg: 'No se encontro'
+    });
+}
+}
+//eliminar citas
+const eliminarCitas =  async (req, res) => {
+    
+    const uid = req.params._id
+try{
+    //leer la base de datos para obtener el email
+    const dbUser = await Citas.findOne({_id:uid});
+
+    dbUser.remove();
+
+    return res.status(201).json({
+        ok:true,
+        msg:'eliminado'
     });
 }
 catch(error){
@@ -612,10 +828,10 @@ catch(error){
 //eliminar fecha
 const eliminarFecha =  async (req, res) => {
     
-    const uid = req.header('x-id')
+    const uid = req.params._id
 try{
     //leer la base de datos para obtener el email
-    const dbUser = await Calendario.findOne({user:uid});
+    const dbUser = await Calendario.findOne({_id:uid});
 
     dbUser.remove();
 
@@ -676,7 +892,7 @@ try{
 //eliminar documentos
 const eliminarDocumentos =  async (req, res) => {
     
-    const uid = req.header('x-id')
+    const uid = req.params._id
 try{
     //leer la base de datos para obtener el email
     const dbUser = await Documento.findById(uid);
@@ -699,23 +915,39 @@ const actualizarUsuario =  async (req, res) => {
     
     const uid = req.params._id
     const update = req.body
-
-
-    Usuario.findByIdAndUpdate(uid,update, (err)=>
-    {
-        if(err) return res.status(500).json({
-            ok: false,
-            msg: 'no se pudo actualizar'
+    const {password} = req.body
+try{
+    Usuario.findByIdAndUpdate(uid,update,(err) =>{
+        if(err) return res.status(400).json({
+            ok:false,
+            msg:'no'
         })
-        return res.status(201).json({
-            ok:true,
-            msg: 'actualizado'
+    });
+    const dbUser =  await Usuario.findById(uid);
+    console.log(dbUser.password)
+    if(dbUser.password !== password){
+        const salt = bcrypt.genSaltSync();
+        dbUser.password = bcrypt.hashSync(password, salt);
+        Usuario.findByIdAndUpdate(uid,{"password": dbUser.password},(err)=>{
+            if(err) return res.status(404).json({
+                ok:false,
+                msg:'no xd'
+            })
         })
-    })
     
-
-
-
+    }
+    return res.status(201).json({
+    ok:true,
+    msg:'usuario actualizado'
+    
+})
+}
+catch(error){
+    return res.status(400).json({
+        ok:false,
+        msg: 'No se encontro'
+    });
+}
 }
 //actualizar proyectos
 const actualizarProyecto =  async (req, res) => {
@@ -767,10 +999,10 @@ const actualizarPropuestas =  async (req, res) => {
 const actualizarFecha =  async (req, res) => {
     
     const uid = req.params._id
-    const update = req.body
+    const body = req.body
 
 
-    Calendario.findByIdAndUpdate(uid,update, (err)=>
+    Calendario.findByIdAndUpdate(uid,body, (err)=>
     {
         if(err) return res.status(500).json({
             ok: false,
@@ -873,7 +1105,8 @@ const actualizarDocumentos =  async (req, res) => {
             msg: 'actualizado'
         })
     })
-    
+
+//Si entrega ya esta creada, actualizar 
 
 
 
@@ -902,7 +1135,7 @@ module.exports = {
     eliminarEntrega,
     eliminarFecha,
     eliminarPropuesta,
-    eliminarProyecto,
+    //eliminarProyecto,
     eliminarRetroalimentacion,
     eliminarDocumentos,
     actualizarUsuario,
@@ -913,5 +1146,19 @@ module.exports = {
     actualizarPropuestas,
     actualizarProyecto,
     actualizarRetroalimentacion,
-    buscarxCategoria
+    buscarxCategoria,
+    buscartodosUsuario,
+    buscartodosProyectos,
+    cambiarProyecto,
+    buscartodosproyectopop,
+    buscarEntregas,
+    buscarRetro,
+    proyectoxusuario,
+    entregaxproyecto,
+    retroxproyecto,
+    buscartodosDocumentos,
+    veryactualizar,
+    crearCategoria,
+    eliminarCategoria,
+    traerTodasCategorias
 }

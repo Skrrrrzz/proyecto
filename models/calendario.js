@@ -6,7 +6,11 @@ calendarioSchema = Schema({
         required: true
     },
     fecha:{
-        type: Date,
+        type: String,
+        required: true
+    },
+    semestre:{
+        type:String,
         required: true
     }
 });

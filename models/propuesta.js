@@ -6,15 +6,19 @@ propuestaSchema = Schema({
         type: String,
         required: true
     },
-    profesorguia:[{
-        type: Schema.Types.ObjectId,
-        ref: Usuario,
-        required: true,
-    }],
     descripcion:{
         type: String,
         required: true
-    }
+    },
+    enable:{
+        type:Boolean,
+        required: true
+    },
+    autor:[{
+        type: Schema.Types.ObjectId,
+        ref:Usuario,
+        required:true
+    }]
 });
 
 module.exports = model('Propuesta', propuestaSchema);

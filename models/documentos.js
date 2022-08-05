@@ -1,4 +1,5 @@
 const { Schema, model} = require("mongoose");
+const Categoria = require('./categoria');
 
 buscadorSchema = Schema({
     titulo:{
@@ -9,10 +10,11 @@ buscadorSchema = Schema({
         type: String,
         required: true
     },
-    categoria:{
-        type: String,
-        required: true
-    },
+    categoria:[{
+        type: Schema.Types.ObjectId,
+        ref: Categoria,
+        required:true
+    }],
     linkB:{
         type: String,
         required: false

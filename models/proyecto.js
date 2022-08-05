@@ -21,8 +21,8 @@ const ProyectoSchema = Schema({
     }],
     profeguia:[{
         type: Schema.Types.ObjectId,
-        ref: Usuario,
-        required: false,
+        ref:Usuario,
+        required: false
     }],
     profeinformante:[{
         type: Schema.Types.ObjectId,
@@ -39,56 +39,26 @@ const ProyectoSchema = Schema({
         ref: Usuario,
         required: false,
     }],
-    entregafip:[{
+    coordinador:[{
         type: Schema.Types.ObjectId,
-        ref: Entrega,
+        ref: Usuario,
         required: false,
+
+}],
+    profesorPt1:[{
+        type: Schema.Types.ObjectId,
+        ref:Usuario,
+        required:true
     }],
-    entrega33:[{
-        type: Schema.Types.ObjectId,
-        ref: Entrega,
-        required: false,
-    }],
-    entrega66:[{
-        type: Schema.Types.ObjectId,
-        ref: Entrega,
-        required: false,
-    }],
-    entrega100:[{
-        type: Schema.Types.ObjectId,
-        ref: Entrega,
-        required: false,
-    }],
-    retro1:[{
-        type: Schema.Types.ObjectId,
-        ref: Retroalimentacion,
-        required: false,
-    }],
-    retro2: [{
-        type: Schema.Types.ObjectId,
-        ref: Retroalimentacion,
-        required: false,
-    }],
-    retro3:[{
-        type: Schema.Types.ObjectId,
-        ref: Retroalimentacion,
-        required: false,
-    }],
-    formeval1:[{
-        type: Schema.Types.ObjectId,
-        ref: Retroalimentacion,
-        required: false,
-    }],
-    formeval2:[{
-        type: Schema.Types.ObjectId,
-        ref: Retroalimentacion,
-        required: false,
-    }],
-    formeval3:[{
-        type: Schema.Types.ObjectId,
-        ref: Retroalimentacion,
-        required: false,
-    }]
+    aceptado:{
+        type:Boolean,
+        required: true
+    },
+    enable:{
+        type:Boolean,
+        required: true
+    }
+
 });
 
 module.exports = model('Proyecto', ProyectoSchema);

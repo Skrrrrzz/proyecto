@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const { dbConnection } = require('./db/config');
 const path = require('path');
+const bodyParser = require('express')
 require('dotenv').config();
 
 
@@ -21,7 +22,15 @@ app.use( cors());
 
 //Lectura y parseo del body
 app.use(express.json());
-
+//limites archivos
+app.use(bodyParser.json({
+    limit: '50mb'
+}))
+app.use(bodyParser.urlencoded({
+    limit:'50mb',
+    parameterLimit: 100000,
+    extended:true
+}))
 //Rutas
 
 app.use('/api/auth', require('./routes/auth') );

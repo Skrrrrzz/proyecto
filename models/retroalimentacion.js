@@ -1,5 +1,6 @@
 const { Schema, model} = require("mongoose");
 const Usuario = require('./usuario');
+const Proyecto = require('./proyecto');
 
 
 retroSchema = Schema({
@@ -13,13 +14,26 @@ retroSchema = Schema({
         required: true,
     }],
     fecha:{
-        type: Date,
+        type: String,
         required: true
     },
     documento:{
         type: String,
         required: true
-    }
+    },
+    tipo:{
+        type: String,
+        required: true
+    },
+    evalu:{
+        type: Boolean,
+        required:true
+    },
+    proyecto:[{
+        type:Schema.Types.ObjectId,
+        ref: Proyecto,
+        required:true
+    }]
 
 
 });

@@ -30,6 +30,10 @@ const UsuarioSchema = Schema({
         type: String,
         required: true,
         unique: true
+    },
+    enable:{
+        type: Boolean,
+        required: true
     }
 });
 
