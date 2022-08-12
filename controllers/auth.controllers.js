@@ -471,7 +471,7 @@ const buscartodosDocumentos =  async (req, res) => {
         //leer la base de datos para obtener el email
      Documento.find( function(err,usuario){
             return res.status(201).send(usuario)
-        });
+        }).populate('categoria');
     }catch(error){
         return res.status(400).json({
             ok:false,
